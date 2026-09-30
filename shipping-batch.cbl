@@ -1,14 +1,17 @@
 000001*2*3*4567A901B3456789012345678901234567890123456789012345678901234
 
-      * 見出し部
+      * 見出し部:プログラム名・作成者
        IDENTIFICATION DIVISION.
        PROGRAM-ID. SHIPPING-BATCH.
+       AUTHOR. ARUTO-OKAMOTO.
 
       * 環境部:使用する外部ファイルを記述
        ENVIRONMENT DIVISION.
       * 入出力節：使用する外部ファイルと物理ファイルを結びつける
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
+
+      *外部ファイル「input/orders.dat」とプログラム内ファイル「ORDER-FILE」接続
                SELECT ORDER-FILE ASSIGN TO "input/orders.dat"
                    ORGANIZATION IS LINE SEQUENTIAL.
                SELECT SHIPPING-FILE ASSIGN TO "output/shipping.dat"
@@ -19,7 +22,7 @@
                    ORGANIZATION IS LINE SEQUENTIAL.
  
  
-      * データ部
+      * データ部：すべての変数やファイル構造を定義
        DATA DIVISION.
        FILE SECTION.
 
@@ -27,6 +30,8 @@
       * ORDER-FILEの構造定義：注文ID・商品コード・注文数
        FD ORDER-FILE.
        01 ORDER-RECORD.
+      *PIC＝ 定義、X=文字、9＝数字、A＝アルファベット、V＝小数点
+      *階層番号01=最上位
            05 IN-ORDER-ID PIC X(6).
            05 IN-PRODUCT-CODE PIC X(5).
            05 IN-ORDER-QTY PIC 9(3).
@@ -54,7 +59,8 @@
            05 MST-PRODUCT-CODE PIC X(5).
            05 MST-STOCK-QTY PIC 9(3).
 
-      * 変数を定義：①在庫数②ファイル読込み確認③合計（④＋⑤）④出荷数⑤エラー数         
+      * 変数を定義：①在庫数②ファイル読込み確認③合計（④＋⑤）④出荷数⑤エラー数
+      * VALUE = 初期値         
        WORKING-STORAGE SECTION.
        01 WS-STOCK-QTY PIC 9(3) VALUE 0.
        01 WS-EOF PIC X VALUE "N".
@@ -63,12 +69,14 @@
        01 WS-ERROR-COUNT PIC 9(3) VALUE 0.
 
 
-      * 手続き部
+      * 手続き部：実際の処理
        PROCEDURE DIVISION.
+      * 内部ファイルと外部ファイルを開く
            OPEN INPUT ORDER-FILE STOCK-FILE
                 OUTPUT SHIPPING-FILE ERROR-FILE
       
       * 在庫ファイル読込み：在庫数を保持する
+      * AT END （ファイル終端時の処理）NOT AT END (データ読み込み成功時の処理)
            READ STOCK-FILE
                AT END
                    DISPLAY "STOCK FILE IS EMPTY"
